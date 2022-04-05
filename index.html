@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>777 Project 2 Randrup</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.23/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.23/"></script>
+
+    <script>
+      require(["esri/config","esri/Map", "esri/layers/FeatureLayer", "esri/views/MapView", "esri/widgets/BasemapToggle",
+      "esri/widgets/BasemapGallery", "esri/widgets/Locate", "esri/widgets/Track", "esri/Graphic", "esri/widgets/Editor",
+              "esri/widgets/Legend", "esri/widgets/LayerList"],
+	function(esriConfig, Map, FeatureLayer, MapView, BasemapToggle, BasemapGallery, Locate, Track, Graphic, Editor,
+             Legend, LayerList) {
+
+        esriConfig.apiKey = "AAPK3cbfb61c2e1f4142b8c81e77385072b3cHNUuS-erVrk2ZwS84_EOfF3zI2Ji0Wwo6fxq_QukQPdm7oR7QYa4pJZw-e4TM-4";
+
+	  const popupWildlife = {
+          "title": "Wildlife Observation",
+          "content": "<b>Park:</b> {park_name}<br><b>Group:</b> {group_}<br><b>Species:</b> {species}<br><b>Quantity:</b> {quantity}<br><b>Time and Date:</b> {time}<br>"
+      }
+	  const wildlifeRenderer = {
+          "type": "simple",
+          "symbol": {
+        	"type": "picture-marker",
+        	"url": "https://uw-mad.maps.arcgis.com/sharing/rest/content/items/7b0ab593f43e448eaa6b872181a427e7/data",
+        	"width": "13px",
+        	"height": "13px"
+          }
+      }
+	  const wildlifeLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/wildlife_observations/FeatureServer", 
+	      renderer: wildlifeRenderer,
+	      outField: ["park_name", "group_", "species", "quantity", "time"],
+	      popupTemplate: popupWildlife
+      });
+
+      const map = new Map({
+          basemap: "arcgis-topographic", // Basemap layer service
+	      layers: [wildlifeLayer]
+      });
+
+      const view = new MapView({
+          map: map,
+          center: [-122.3001486, 47.6579416], // Longitude, latitude
+          zoom: 13, // Zoom level
+          container: "viewDiv" // Div element
+      });
+
+	  const track = new Track({
+          view: view,
+          graphic: new Graphic({
+            symbol: {
+              type: "simple-marker",
+              size: "12px",
+              color: "green",
+              outline: {
+                color: "#efefef",
+                width: "1.5px"
+              }
+            }
+          }),
+          useHeadingEnabled: false
+      });
+      view.ui.add(track, "top-left");
+
+	  const editor = new Editor({
+          view: view,
+          snappingOptions: {
+            enabled: true,
+            selfEnabled: true,
+            featureEnabled: true,
+            featureSources: [{layer: wildlifeLayer}]
+          }
+      });
+      view.ui.add(editor, "top-right");
+
+      //let legend = new Legend({
+      //  view: view
+      //});
+      //view.ui.add(legend, "bottom-right");
+
+      let layerList = new LayerList({
+        view: view
+      });
+// Adds widget below other elements in the top left corner of the view
+      view.ui.add(layerList, {position: "top-left"});
+
+      const popupParking = {
+          "title": "Parking Lot",
+          "content": "<b>Park:</b> {park_name}<br><b>Lot Name:</b> {parking_lot_name}<br>"
+      }
+	  const parkingRenderer = {
+          "type": "simple",
+          "symbol": {
+        	"type": "picture-marker",
+        	"url": "https://uw-mad.maps.arcgis.com/sharing/rest/content/items/5651567f502140e49b138eba8bdff135/data",
+        	"width": "13px",
+        	"height": "13px"
+          }
+      }
+	  const parkingLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/parking/FeatureServer", 
+	      renderer: parkingRenderer,
+	      outFields: ["park_name", "parking_lot_name"],
+	      popupTemplate: popupParking
+      });
+	  map.add(parkingLayer);
+
+	  const busRenderer = {
+          "type": "simple",
+          "symbol": {
+        	"type": "picture-marker",
+        	"url": "https://uw-mad.maps.arcgis.com/sharing/rest/content/items/2252ccc57d3b4de8b8a2fbdc4be48a47/data",
+        	"width": "13px",
+        	"height": "13px"
+          }
+      }
+	  const busLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/bus/FeatureServer", 
+	      renderer: busRenderer,
+      });
+	  map.add(busLayer);
+
+	  const bathroomRenderer = {
+          "type": "simple",
+          "symbol": {
+        	"type": "picture-marker",
+        	"url": "https://uw-mad.maps.arcgis.com/sharing/rest/content/items/23fc5dc0870e478b8626fda5be502e0f/data",
+        	"width": "13px",
+        	"height": "13px"
+          }
+      }
+	  const bathroomLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/bathroom/FeatureServer", 
+	      renderer: bathroomRenderer
+      });
+	  map.add(bathroomLayer);
+
+	  const popupBuilding = {
+          "title": "Building of Interest",
+          "content": "<b>Park:</b> {park_name}<br><b>Name:</b> {name}<br>"
+      }
+	  const buildingRenderer = {
+          "type": "simple",
+          "symbol": {
+        	"type": "picture-marker",
+        	"url": "https://uw-mad.maps.arcgis.com/sharing/rest/content/items/9484bdae67db4230925c08effcd7f2d8/data",
+        	"width": "13px",
+        	"height": "13px"
+          }
+      }
+	  const buildingLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/building/FeatureServer", 
+	      renderer: buildingRenderer,
+	      outFields: ["park_name", "name"],
+	      popupTemplate: popupBuilding
+      });
+	  map.add(buildingLayer);
+
+	  const popupPOI = {
+          "title": "Point of Interest",
+          "content": "<b>Park:</b> {park_name}<br><b>Name:</b> {name}<br>"
+      }
+	  const poiRenderer = {
+          "type": "simple",
+          "symbol": {
+        	"type": "picture-marker",
+        	"url": "https://uw-mad.maps.arcgis.com/sharing/rest/content/items/7cda92fad52745d1ae0ace87fdfc79df/data",
+        	"width": "13px",
+        	"height": "13px"
+          }
+      }
+	  const poiLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/poi_parks/FeatureServer", 
+	      renderer: poiRenderer,
+          outFields: ["park_name", "name"],
+	      popupTemplate: popupPOI
+      });
+	  map.add(poiLayer);
+
+	  const popupRecreation = {
+          "title": "Recreation Spots",
+          "content": "<b>Park:</b> {park_name}<br><b>Name:</b> {name}<br>"
+      }
+	  const recreationRenderer = {
+          "type": "simple",
+          "symbol": {
+        	"type": "picture-marker",
+        	"url": "https://uw-mad.maps.arcgis.com/sharing/rest/content/items/a8be4150c45b49f7970ab87388546425/data",
+        	"width": "13px",
+        	"height": "13px"
+          }
+      }
+	  const recreationLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/recreation/FeatureServer", 
+	      renderer: recreationRenderer,
+	      outfields: ["park_name", "name"],
+	      popupTemplate: popupRecreation
+      });
+	  map.add(recreationLayer);
+
+	  const tableRenderer = {
+          "type": "simple",
+          "symbol": {
+        	"type": "picture-marker",
+        	"url": "https://uw-mad.maps.arcgis.com/sharing/rest/content/items/1c66314a51d94ad68ad92afeaa39e40b/data",
+        	"width": "13px",
+        	"height": "13px"
+          }
+      }
+	  const tableLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/table/FeatureServer", 
+	      renderer: tableRenderer
+      });
+	  map.add(tableLayer);
+
+      // Create the layer and set the renderer
+	  const selectedParksLayer = new FeatureLayer({
+    	  url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/selected_parks/FeatureServer", 
+	      opacity: 0.2,
+  	  });
+      // Add the layer
+      map.add(selectedParksLayer);
+
+	  const basemapToggle = new BasemapToggle({
+          view: view,
+          nextBasemap: "arcgis-imagery"
+      });
+	  view.ui.add(basemapToggle,"bottom-right");
+
+      });
+    </script>
+
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>

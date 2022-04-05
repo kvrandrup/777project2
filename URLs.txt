@@ -1,0 +1,21 @@
+IMG URLS:
+https://uw-mad.maps.arcgis.com/sharing/rest/content/items/23fc5dc0870e478b8626fda5be502e0f/data BATHROOM IMG
+https://uw-mad.maps.arcgis.com/sharing/rest/content/items/9484bdae67db4230925c08effcd7f2d8/data BUILDING IMG
+https://uw-mad.maps.arcgis.com/sharing/rest/content/items/2252ccc57d3b4de8b8a2fbdc4be48a47/data BUS IMG
+https://uw-mad.maps.arcgis.com/sharing/rest/content/items/7cda92fad52745d1ae0ace87fdfc79df/data POI IMG
+https://uw-mad.maps.arcgis.com/sharing/rest/content/items/a8be4150c45b49f7970ab87388546425/data RECREATION IMG
+https://uw-mad.maps.arcgis.com/sharing/rest/content/items/1c66314a51d94ad68ad92afeaa39e40b/data TABLE IMG
+https://uw-mad.maps.arcgis.com/sharing/rest/content/items/7b0ab593f43e448eaa6b872181a427e7/data WILDLIFE IMG
+
+DATA URLS:
+https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/wildlife_observations/FeatureServer WILDLIFE LAYER
+https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/park_amenities/FeatureServer AMENITIES LAYER
+https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/parking/FeatureServer PARKING LAYER
+https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/bus/FeatureServer BUS LAYER
+https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/park_entry_points/FeatureServer ENTRY POINTS LAYER
+https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/selected_parks/FeatureServer PARKS LAYER
+https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/bathroom/FeatureServer BATHROOM LAYER
+https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/building/FeatureServer BUILDING LAYER
+https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/poi_parks/FeatureServer POI LAYER
+https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/recreation/FeatureServer RECREATION LAYER
+https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/table/FeatureServer TABLE LAYER
