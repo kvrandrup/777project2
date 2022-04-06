@@ -14,6 +14,17 @@
         height: 100%;
         width: 100%;
       }
+      #infoDiv {
+        width: 300px;
+        background-color: white;
+        padding: 10px;
+      }
+      #infoDiv h1 {
+        font-size: 16px;
+      }
+      #infoDiv p {
+        font-style: italic;
+      }
     </style>
 
     <link rel="stylesheet" href="https://js.arcgis.com/4.23/esri/themes/light/main.css">
@@ -22,9 +33,10 @@
     <script>
       require(["esri/config","esri/Map", "esri/layers/FeatureLayer", "esri/views/MapView", "esri/widgets/BasemapToggle",
       "esri/widgets/BasemapGallery", "esri/widgets/Locate", "esri/widgets/Track", "esri/Graphic", "esri/widgets/Editor",
-              "esri/widgets/Legend", "esri/widgets/LayerList", "esri/widgets/Expand"],
+                "esri/widgets/Legend", "esri/widgets/LayerList", "esri/widgets/Expand", "esri/widgets/Popup",
+              "esri/widgets/Search"],
 	function(esriConfig, Map, FeatureLayer, MapView, BasemapToggle, BasemapGallery, Locate, Track, Graphic, Editor,
-             Legend, LayerList, Expand) {
+             Legend, LayerList, Expand, Popup, Search) {
 
         esriConfig.apiKey = "AAPK3cbfb61c2e1f4142b8c81e77385072b3cHNUuS-erVrk2ZwS84_EOfF3zI2Ji0Wwo6fxq_QukQPdm7oR7QYa4pJZw-e4TM-4";
 
@@ -57,7 +69,14 @@
           map: map,
           center: [-122.3001486, 47.6579416], // Longitude, latitude
           zoom: 13, // Zoom level
-          container: "viewDiv" // Div element
+          container: "viewDiv", // Div element
+          popup: {
+            dockEnabled: true,
+            dockOptions: {
+              position: "top-right",
+              breakpoint: false
+            }
+          }
       });
 
 	  const track = new Track({
@@ -77,6 +96,14 @@
       });
       view.ui.add(track, "top-left");
 
+      const infoExpand = new Expand({
+        expandIconClass: "esri-icon-description",
+        expandTooltip: "Information",
+        view: view,
+        content: document.getElementById("infoDiv")
+      });
+      view.ui.add(infoExpand, "top-left");
+
 	  const editor = new Editor({
           view: view,
           snappingOptions: {
@@ -88,25 +115,29 @@
       });
       //view.ui.add(editor, "top-right");
       editorExpand = new Expand({
-        expandIconClass: "esri-icon-edit",  // see https://developers.arcgis.com/javascript/latest/guide/esri-icon-font/
-        expandTooltip: "Add Observation", // optional, defaults to "Expand" for English locale
+        expandIconClass: "esri-icon-edit",
+        expandTooltip: "Add Observation",
         view: view,
         content: editor
       });
       view.ui.add(editorExpand, "top-right");
-
-      let legend = new Legend({
-        view: view
-      });
-      //view.ui.add(legend, "bottom-right");
-
-      let layerList = new LayerList({
-        container: document.createElement("div"),
-        view: view
+      
+      const layerList = new LayerList({
+        view: view,
+        listItemCreatedFunction: (event) => {
+          const item = event.item;
+          if (item.layer.type != "group") {
+            // don't show legend twice
+            item.panel = {
+              content: "legend",
+              open: true
+            };
+          }
+        }
       });
       layerListExpand = new Expand({
-        expandIconClass: "esri-icon-layer-list",  // see https://developers.arcgis.com/javascript/latest/guide/esri-icon-font/
-        expandTooltip: "Expand Layer List", // optional, defaults to "Expand" for English locale
+        expandIconClass: "esri-icon-layer-list",
+        expandTooltip: "Expand Legend", 
         view: view,
         content: layerList
       });
@@ -249,6 +280,55 @@
       // Add the layer
       map.add(selectedParksLayer);
 
+      const searchWidget = new Search({
+        view: view,
+        allPlaceholder: "wildlife observations",
+        includeDefaultSources: false,
+        popupEnabled: false,
+        maxResults: 6,
+        sources: [
+          {
+            layer: wildlifeLayer,
+            searchFields: ["park_name"],
+            displayField: "park_name",
+            exactMatch: false,
+            maxResults: 6,
+            name: "Park",
+            placeholder: "example: Ravenna Park"
+          },
+          {
+            layer: wildlifeLayer,
+            searchFields: ["group_"],
+            displayField: "group_",
+            exactMatch: false,
+            maxResults: 6,
+            name: "Species Group",
+            placeholder: "example: Birds"
+          },
+          {
+            layer: wildlifeLayer,
+            searchFields: ["species"],
+            displayField: "species",
+            exactMatch: false,
+            maxResults: 6,
+            name: "Species",
+            placeholder: "example: Spotted Towhee"
+          },
+          {
+            name: "ArcGIS World Geocoding Service",
+            placeholder: "example: Nuuk, GRL",
+            apiKey: "AAPK3cbfb61c2e1f4142b8c81e77385072b3cHNUuS-erVrk2ZwS84_EOfF3zI2Ji0Wwo6fxq_QukQPdm7oR7QYa4pJZw-e4TM-4",
+            singleLineFieldName: "SingleLine",
+            locator: "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+          }
+        ]
+      });
+      searchWidget.on("search-complete", function(event){
+        // The results are stored in the event Object[]
+        console.log("Results of the search: ", event);
+      });
+      view.ui.add(searchWidget, "top-right");
+
 	  const basemapToggle = new BasemapToggle({
           view: view,
           nextBasemap: "arcgis-imagery"
@@ -260,6 +340,13 @@
 
   </head>
   <body>
-    <div id="viewDiv"></div>
+    <div id="viewDiv">
+      <div id="infoDiv">
+        <h1>Information and Usage</h1>
+        <p>This application is intended to allow the user to explor parks in Seattle and record wildlife sightings. Please
+        use the layer list and legend to turn layers on and off as desired. Select the location tracker to follow your location
+        path and route followed. In the upper right corner, select the editor widget to record any wildlife observations you have.</p>
+      </div>
+    </div>
   </body>
 </html>
