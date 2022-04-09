@@ -1,0 +1,7 @@
+<div id="park-filter" class="esri-widget">
+    <div class="park-item visible-amenities" park-name="Cowen Park">Cowen Park</div>
+    <div class="park-item visible-amenities" park-name="Gas Works Park">Gas Works Park</div>
+    <div class="park-item visible-amenities" park-name="Green Lake Park">Green Lake Park</div>
+    <div class="park-item visible-amenities" park-name="Interlaken Park">Interlaken Park</div>
+  </div>
+

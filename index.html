@@ -14,6 +14,12 @@
         height: 100%;
         width: 100%;
       }
+      #queryDiv {
+        background-color: dimgray;
+        color: white;
+        padding: 10px;
+        width: 250px;
+      }
       #infoDiv {
         width: 300px;
         background-color: white;
@@ -25,6 +31,19 @@
       #infoDiv p {
         font-style: italic;
       }
+      #park-filter {
+        height: 160px;
+        width: 100%;
+        visibility: hidden;
+      }
+      .park-item {
+        width: 100%;
+        padding: 12px;
+        text-align: center;
+        vertical-align: baseline;
+        cursor: pointer;
+        height: 40px;
+      }
     </style>
 
     <link rel="stylesheet" href="https://js.arcgis.com/4.23/esri/themes/light/main.css">
@@ -34,15 +53,17 @@
       require(["esri/config","esri/Map", "esri/layers/FeatureLayer", "esri/views/MapView", "esri/widgets/BasemapToggle",
       "esri/widgets/BasemapGallery", "esri/widgets/Locate", "esri/widgets/Track", "esri/Graphic", "esri/widgets/Editor",
                 "esri/widgets/Legend", "esri/widgets/LayerList", "esri/widgets/Expand", "esri/widgets/Popup",
-              "esri/widgets/Search"],
+              "esri/widgets/Search", "esri/widgets/Home", "esri/rest/support/TopFeaturesQuery", "esri/rest/support/TopFilter",
+              "esri/layers/GroupLayer", "esri/widgets/Directions"],
 	function(esriConfig, Map, FeatureLayer, MapView, BasemapToggle, BasemapGallery, Locate, Track, Graphic, Editor,
-             Legend, LayerList, Expand, Popup, Search) {
+             Legend, LayerList, Expand, Popup, Search, Home, TopFeaturesQuery, TopFilter, GroupLayer, Directions) {
 
         esriConfig.apiKey = "AAPK3cbfb61c2e1f4142b8c81e77385072b3cHNUuS-erVrk2ZwS84_EOfF3zI2Ji0Wwo6fxq_QukQPdm7oR7QYa4pJZw-e4TM-4";
 
 	  const popupWildlife = {
           "title": "Wildlife Observation",
-          "content": "<b>Park:</b> {park_name}<br><b>Group:</b> {group_}<br><b>Species:</b> {species}<br><b>Quantity:</b> {quantity}<br><b>Time and Date:</b> {time}<br>"
+          "content": "<b>Park:</b> {park_name}<br><b>Group:</b> {group_}<br><b>Species:</b> {species}<br><b>Quantity:</b> " +
+                  "{quantity}<br><b>Time and Date:</b> {date_time}<br>"
       }
 	  const wildlifeRenderer = {
           "type": "simple",
@@ -61,8 +82,9 @@
       });
 
       const map = new Map({
-          basemap: "arcgis-topographic", // Basemap layer service
-	      layers: [wildlifeLayer]
+        basemap: "arcgis-topographic", // Basemap layer service
+	    //basemap: "arcgis-navigation",
+        layers: [wildlifeLayer]
       });
 
       const view = new MapView({
@@ -79,6 +101,13 @@
           }
       });
 
+      //home application -- return to original zoom and location
+      const home = new Home({
+        view:view
+      });
+      view.ui.add(home, "top-left");
+      
+      //tracking application
 	  const track = new Track({
           view: view,
           graphic: new Graphic({
@@ -96,31 +125,25 @@
       });
       view.ui.add(track, "top-left");
 
+      //directions application
+      let directions = new Directions({
+        view: view
+      });
+      const directionsExpand = new Expand({
+        expandIconClass: "esri-icon-directions",
+        expandTooltip: "Directions",
+        view: view,
+        content: directions
+      });
+      view.ui.add(directionsExpand, "top-left");
+
       const infoExpand = new Expand({
-        expandIconClass: "esri-icon-description",
+        expandIconClass: "esri-icon-question",
         expandTooltip: "Information",
         view: view,
         content: document.getElementById("infoDiv")
       });
       view.ui.add(infoExpand, "top-left");
-
-	  const editor = new Editor({
-          view: view,
-          snappingOptions: {
-            enabled: true,
-            selfEnabled: true,
-            featureEnabled: true,
-            featureSources: [{layer: wildlifeLayer}]
-          }
-      });
-      //view.ui.add(editor, "top-right");
-      editorExpand = new Expand({
-        expandIconClass: "esri-icon-edit",
-        expandTooltip: "Add Observation",
-        view: view,
-        content: editor
-      });
-      view.ui.add(editorExpand, "top-right");
       
       const layerList = new LayerList({
         view: view,
@@ -136,7 +159,7 @@
         }
       });
       layerListExpand = new Expand({
-        expandIconClass: "esri-icon-layer-list",
+        expandIconClass: "esri-icon-legend",
         expandTooltip: "Expand Legend", 
         view: view,
         content: layerList
@@ -192,7 +215,6 @@
           url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/bathroom/FeatureServer", 
 	      renderer: bathroomRenderer
       });
-	  map.add(bathroomLayer);
 
 	  const popupBuilding = {
           "title": "Building of Interest",
@@ -213,7 +235,6 @@
 	      outFields: ["park_name", "name"],
 	      popupTemplate: popupBuilding
       });
-	  map.add(buildingLayer);
 
 	  const popupPOI = {
           "title": "Point of Interest",
@@ -234,7 +255,6 @@
           outFields: ["park_name", "name"],
 	      popupTemplate: popupPOI
       });
-	  map.add(poiLayer);
 
 	  const popupRecreation = {
           "title": "Recreation Spots",
@@ -255,7 +275,6 @@
 	      outfields: ["park_name", "name"],
 	      popupTemplate: popupRecreation
       });
-	  map.add(recreationLayer);
 
 	  const tableRenderer = {
           "type": "simple",
@@ -270,7 +289,6 @@
           url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/table/FeatureServer", 
 	      renderer: tableRenderer
       });
-	  map.add(tableLayer);
 
       // Create the layer and set the renderer
 	  const selectedParksLayer = new FeatureLayer({
@@ -280,19 +298,30 @@
       // Add the layer
       map.add(selectedParksLayer);
 
+      //create a group layer for amenities
+      const amenitiesGroupLayer = new GroupLayer({
+        title: "Park Amenities",
+        visible: true,
+        visitibilityMode: "exclusive",
+        layers: [buildingLayer, bathroomLayer, poiLayer, recreationLayer, tableLayer]
+      });
+      //add layer to map
+      map.add(amenitiesGroupLayer);
+
       const searchWidget = new Search({
         view: view,
-        allPlaceholder: "wildlife observations",
+        allPlaceholder: "Search Observations",
         includeDefaultSources: false,
-        popupEnabled: false,
-        maxResults: 6,
+        //popupEnabled: false,
+        maxResults: 100,
+        //autoSelect: false,
         sources: [
           {
             layer: wildlifeLayer,
-            searchFields: ["park_name"],
+            searchFields: ["park_name", "group_"],
             displayField: "park_name",
             exactMatch: false,
-            maxResults: 6,
+            maxResults: 100,
             name: "Park",
             placeholder: "example: Ravenna Park"
           },
@@ -301,7 +330,7 @@
             searchFields: ["group_"],
             displayField: "group_",
             exactMatch: false,
-            maxResults: 6,
+            maxResults: 100,
             name: "Species Group",
             placeholder: "example: Birds"
           },
@@ -310,7 +339,7 @@
             searchFields: ["species"],
             displayField: "species",
             exactMatch: false,
-            maxResults: 6,
+            maxResults: 100,
             name: "Species",
             placeholder: "example: Spotted Towhee"
           },
@@ -329,6 +358,96 @@
       });
       view.ui.add(searchWidget, "top-right");
 
+      const editor = new Editor({
+        view: view,
+        snappingOptions: {
+          enabled: true,
+          selfEnabled: true,
+          featureEnabled: true,
+          featureSources: [{layer: wildlifeLayer}]
+        }
+      });
+      editorExpand = new Expand({
+        expandIconClass: "esri-icon-edit",
+        expandTooltip: "Add Observation",
+        view: view,
+        content: editor
+      });
+      view.ui.add(editorExpand, "top-right");
+
+      //const queryExpand = new Expand({
+      //  expandIconClass: "esri-icon-filter",
+      //  group: "top-right",
+      //  view: view,
+      //  content: queryDiv
+      //});
+      //view.ui.add(queryExpand, "top-right");
+      const parksSQL = [
+              "All Parks",
+              "bathroom = 'true'",
+              "building = 'true'",
+              "bus = 'true'",
+              "parking = 'true'",
+              "poi = 'true'",
+              "recreation = 'true'",
+              "tables = 'true'"
+      ];
+      let whereClause = parksSQL[0];
+      const select = document.createElement("select","");
+      select.setAttribute("class", "esri-widget esri-select");
+      select.setAttribute("style", "width: 200px; font-family: 'Avenir Next'; font-size: 1em");
+      parksSQL.forEach(function(query){
+        let option = document.createElement("option");
+        option.innerHTML = query;
+        option.value = query;
+        select.appendChild(option);
+      });
+      const queryExpand = new Expand({
+        expandIconClass: "esri-icon-filter",
+        group: "top-right",
+        view: view,
+        content: select
+      })
+      view.ui.add(queryExpand, "top-right");
+      select.addEventListener('change', (event) => {
+        whereClause = event.target.value;
+        querySelectedParks(view.extent);
+      });
+
+      function querySelectedParks(extent) {
+        const parkQuery = {
+          where: whereClause,
+          geometry: extent,
+          outFields: ["*"],
+          returnGeometry: true
+        };
+        selectedParksLayer.queryFeatures(parkQuery)
+        .then((results) => {
+          console.log("feature count: " + results.features.length);
+          displayResults(results);
+        }).catch((error) => {
+          console.log(error.error);
+        });
+      }
+      function displayResults(results) {
+        // Create a blue polygon
+        const symbol = {
+          type: "simple-fill",
+          color: [ 20, 130, 200, 0.5 ],
+          outline: {
+            color: "white",
+            width: 1
+          },
+        };
+        results.features.map((feature) => {
+          feature.symbol = symbol;
+          return feature;
+        });
+        //clear display
+        view.graphics.removeAll();
+        view.graphics.addMany(results.features);
+      }
+
 	  const basemapToggle = new BasemapToggle({
           view: view,
           nextBasemap: "arcgis-imagery"
@@ -341,6 +460,23 @@
   </head>
   <body>
     <div id="viewDiv">
+      <div class="esri-widget" id="queryDiv">
+        <h2>Query for Amenities</h2>
+        <h3>Parks that contain...</h3>
+        <select class="esri-widget" id="expSelect">
+          <option value="bathroom = 'true'">Bathrooms</option>
+          <option value="building = 'true'">Buildings</option>
+          <option value="bus = 'true'">Bus Stop</option>
+          <option value="parking = 'true'">Parking Lot</option>
+          <option value="poi = 'true'">Point of Interest</option>
+          <option value="recreation = 'true'">Recreation</option>
+          <option value="tables = 'true'">Table or Shelter</option>
+        </select>
+        <br />
+        <br />
+        <button class="esri-widget" id="doBtn" width="half">Find Parks!</button>
+        <button class="esri-widget" id="clearBtn" width="half">Clear Query</button>
+        <p><span id="printResults"></span></p>
       <div id="infoDiv">
         <h1>Information and Usage</h1>
         <p>This application is intended to allow the user to explor parks in Seattle and record wildlife sightings. Please
