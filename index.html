@@ -126,16 +126,16 @@
       view.ui.add(track, "top-left");
 
       //directions application
-      let directions = new Directions({
-        view: view
-      });
-      const directionsExpand = new Expand({
-        expandIconClass: "esri-icon-directions",
-        expandTooltip: "Directions",
-        view: view,
-        content: directions
-      });
-      view.ui.add(directionsExpand, "top-left");
+      //let directions = new Directions({
+      //  view: view
+      //});
+      //const directionsExpand = new Expand({
+      //  expandIconClass: "esri-icon-directions",
+      //  expandTooltip: "Directions",
+      //  view: view,
+      //  content: directions
+      //});
+      //view.ui.add(directionsExpand, "top-left");
 
       const infoExpand = new Expand({
         expandIconClass: "esri-icon-question",
@@ -375,41 +375,17 @@
       });
       view.ui.add(editorExpand, "top-right");
 
-      //const queryExpand = new Expand({
-      //  expandIconClass: "esri-icon-filter",
-      //  group: "top-right",
-      //  view: view,
-      //  content: queryDiv
-      //});
-      //view.ui.add(queryExpand, "top-right");
-      const parksSQL = [
-              "All Parks",
-              "bathroom = 'true'",
-              "building = 'true'",
-              "bus = 'true'",
-              "parking = 'true'",
-              "poi = 'true'",
-              "recreation = 'true'",
-              "tables = 'true'"
-      ];
-      let whereClause = parksSQL[0];
-      const select = document.createElement("select","");
-      select.setAttribute("class", "esri-widget esri-select");
-      select.setAttribute("style", "width: 200px; font-family: 'Avenir Next'; font-size: 1em");
-      parksSQL.forEach(function(query){
-        let option = document.createElement("option");
-        option.innerHTML = query;
-        option.value = query;
-        select.appendChild(option);
-      });
       const queryExpand = new Expand({
         expandIconClass: "esri-icon-filter",
+        expandTooltip: "Query Parks", 
         group: "top-right",
         view: view,
-        content: select
-      })
+        content: queryDiv
+      });
       view.ui.add(queryExpand, "top-right");
-      select.addEventListener('change', (event) => {
+      const querySelection = document.getElementById("expSelect");
+      let whereClause = querySelection.options[querySelection.selectedIndex].value;
+      queryDiv.addEventListener('change', (event) => {
         whereClause = event.target.value;
         querySelectedParks(view.extent);
       });
@@ -447,6 +423,10 @@
         view.graphics.removeAll();
         view.graphics.addMany(results.features);
       }
+      const clearQueryButton = document.getElementById('clearBtn');
+      clearQueryButton.addEventListener("click", () => {
+        view.graphics.removeAll();
+      });
 
 	  const basemapToggle = new BasemapToggle({
           view: view,
@@ -464,6 +444,7 @@
         <h2>Query for Amenities</h2>
         <h3>Parks that contain...</h3>
         <select class="esri-widget" id="expSelect">
+          <option value="bathroom = 'true' OR bathroom = 'false'">All Parks</option>
           <option value="bathroom = 'true'">Bathrooms</option>
           <option value="building = 'true'">Buildings</option>
           <option value="bus = 'true'">Bus Stop</option>
@@ -474,14 +455,14 @@
         </select>
         <br />
         <br />
-        <button class="esri-widget" id="doBtn" width="half">Find Parks!</button>
         <button class="esri-widget" id="clearBtn" width="half">Clear Query</button>
         <p><span id="printResults"></span></p>
       <div id="infoDiv">
         <h1>Information and Usage</h1>
         <p>This application is intended to allow the user to explor parks in Seattle and record wildlife sightings. Please
         use the layer list and legend to turn layers on and off as desired. Select the location tracker to follow your location
-        path and route followed. In the upper right corner, select the editor widget to record any wildlife observations you have.</p>
+        path and route followed. In the upper right corner, select the editor widget to record any wildlife observations you have.
+        The filter icon can be expanded to filter and highlight parks based on their available amenities.</p>
       </div>
     </div>
   </body>
