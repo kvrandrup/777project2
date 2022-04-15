@@ -14,7 +14,13 @@
         height: 100%;
         width: 100%;
       }
-      #queryDiv {
+      #queryParkDiv {
+        background-color: dimgray;
+        color: white;
+        padding: 10px;
+        width: 250px;
+      }
+      #queryAmenityDiv {
         background-color: dimgray;
         color: white;
         padding: 10px;
@@ -124,18 +130,6 @@
           useHeadingEnabled: false
       });
       view.ui.add(track, "top-left");
-
-      //directions application
-      //let directions = new Directions({
-      //  view: view
-      //});
-      //const directionsExpand = new Expand({
-      //  expandIconClass: "esri-icon-directions",
-      //  expandTooltip: "Directions",
-      //  view: view,
-      //  content: directions
-      //});
-      //view.ui.add(directionsExpand, "top-left");
 
       const infoExpand = new Expand({
         expandIconClass: "esri-icon-question",
@@ -375,24 +369,24 @@
       });
       view.ui.add(editorExpand, "top-right");
 
-      const queryExpand = new Expand({
+      const queryParkExpand = new Expand({
         expandIconClass: "esri-icon-filter",
         expandTooltip: "Query Parks", 
         group: "top-right",
         view: view,
-        content: queryDiv
+        content: queryParkDiv
       });
-      view.ui.add(queryExpand, "top-right");
-      const querySelection = document.getElementById("expSelect");
-      let whereClause = querySelection.options[querySelection.selectedIndex].value;
-      queryDiv.addEventListener('change', (event) => {
-        whereClause = event.target.value;
+      view.ui.add(queryParkExpand, "top-right");
+      const queryParkSelection = document.getElementById("expParkSelect");
+      let whereParkClause = queryParkSelection.options[queryParkSelection.selectedIndex].value;
+      queryParkDiv.addEventListener('change', (event) => {
+        whereParkClause = event.target.value;
         querySelectedParks(view.extent);
       });
 
       function querySelectedParks(extent) {
         const parkQuery = {
-          where: whereClause,
+          where: whereParkClause,
           geometry: extent,
           outFields: ["*"],
           returnGeometry: true
@@ -400,12 +394,12 @@
         selectedParksLayer.queryFeatures(parkQuery)
         .then((results) => {
           console.log("feature count: " + results.features.length);
-          displayResults(results);
+          displayParkResults(results);
         }).catch((error) => {
           console.log(error.error);
         });
       }
-      function displayResults(results) {
+      function displayParkResults(results) {
         // Create a blue polygon
         const symbol = {
           type: "simple-fill",
@@ -423,8 +417,114 @@
         view.graphics.removeAll();
         view.graphics.addMany(results.features);
       }
-      const clearQueryButton = document.getElementById('clearBtn');
-      clearQueryButton.addEventListener("click", () => {
+      const clearParkQueryButton = document.getElementById('clearParkBtn');
+      clearParkQueryButton.addEventListener("click", () => {
+        view.graphics.removeAll();
+      });
+
+      const queryAmenityExpand = new Expand({
+        expandIconClass: "esri-icon-minus-circled",
+        expandTooltip: "Query Amenities by Status",
+        group: "top-right",
+        view: view,
+        content: queryAmenityDiv
+      });
+      view.ui.add(queryAmenityExpand, "top-right");
+      const queryAmenitySelection = document.getElementById("expAmenitySelect");
+      let whereAmenityClause = queryAmenitySelection.options[queryAmenitySelection.selectedIndex].value;
+      queryAmenityDiv.addEventListener('change', (event) => {
+        whereAmenityClause = event.target.value;
+        querySelectedAmenities(view.extent);
+      });
+
+      function querySelectedAmenities(extent) {
+        const amenityTypeSelection = document.getElementById("typeAmenitySelect");
+        let whichAmenity = amenityTypeSelection.options[amenityTypeSelection.selectedIndex].value;
+        console.log(whichAmenity);
+        const amenityQuery = {
+          where: whereAmenityClause,
+          geometry: extent,
+          outFields: ["*"],
+          returnGeometry: true
+        };
+        if (whichAmenity == 'bathroom') {
+          bathroomLayer.queryFeatures(amenityQuery)
+                  .then((results) => {
+                    console.log("feature count: " + results.features.length);
+                    displayAmenityResults(results);
+                  }).catch((error) => {
+            console.log(error.error);
+          });
+        } else if (whichAmenity == 'building') {
+          buildingLayer.queryFeatures(amenityQuery)
+                  .then((results) => {
+                    console.log("feature count: " + results.features.length);
+                    displayAmenityResults(results);
+                  }).catch((error) => {
+            console.log(error.error);
+          });
+        } else if (whichAmenity == 'bus') {
+          busLayer.queryFeatures(amenityQuery)
+                  .then((results) => {
+                    console.log("feature count: " + results.features.length);
+                    displayAmenityResults(results);
+                  }).catch((error) => {
+            console.log(error.error);
+          });
+        } else if (whichAmenity == 'parking') {
+          bathroomLayer.queryFeatures(amenityQuery)
+                  .then((results) => {
+                    console.log("feature count: " + results.features.length);
+                    displayAmenityResults(results);
+                  }).catch((error) => {
+            console.log(error.error);
+          });
+        } else if (whichAmenity == 'poi') {
+          poiLayer.queryFeatures(amenityQuery)
+                  .then((results) => {
+                    console.log("feature count: " + results.features.length);
+                    displayAmenityResults(results);
+                  }).catch((error) => {
+            console.log(error.error);
+          });
+        } else if (whichAmenity == 'recreation') {
+          recreationLayer.queryFeatures(amenityQuery)
+                  .then((results) => {
+                    console.log("feature count: " + results.features.length);
+                    displayAmenityResults(results);
+                  }).catch((error) => {
+            console.log(error.error);
+          });
+        } else if (whichAmenity == 'table') {
+          tableLayer.queryFeatures(amenityQuery)
+                  .then((results) => {
+                    console.log("feature count: " + results.features.length);
+                    displayAmenityResults(results);
+                  }).catch((error) => {
+            console.log(error.error);
+          });
+        }
+      }
+      function displayAmenityResults(results) {
+        // Create a blue polygon
+        const symbol = {
+          type: "simple-marker",
+          color: [ 20, 130, 200, 0.5 ],
+          outline: {
+            color: "white",
+            width: 1
+          },
+        };
+        results.features.map((feature) => {
+          feature.symbol = symbol;
+          return feature;
+        });
+        //clear display
+        view.graphics.removeAll();
+        view.graphics.addMany(results.features);
+      }
+      const clearAmenityQueryButton = document.getElementById('clearAmenityBtn');
+      clearAmenityQueryButton.addEventListener("click", () => {
         view.graphics.removeAll();
       });
 
@@ -440,10 +540,10 @@
   </head>
   <body>
     <div id="viewDiv">
-      <div class="esri-widget" id="queryDiv">
+      <div class="esri-widget" id="queryParkDiv">
         <h2>Query for Amenities</h2>
         <h3>Parks that contain...</h3>
-        <select class="esri-widget" id="expSelect">
+        <select class="esri-widget" id="expParkSelect">
           <option value="bathroom = 'true' OR bathroom = 'false'">All Parks</option>
           <option value="bathroom = 'true'">Bathrooms</option>
           <option value="building = 'true'">Buildings</option>
@@ -451,12 +551,37 @@
           <option value="parking = 'true'">Parking Lot</option>
           <option value="poi = 'true'">Point of Interest</option>
           <option value="recreation = 'true'">Recreation</option>
-          <option value="tables = 'true'">Table or Shelter</option>
+          <option value="tables = 'true'">Table/Shelter</option>
         </select>
         <br />
         <br />
-        <button class="esri-widget" id="clearBtn" width="half">Clear Query</button>
+        <button class="esri-widget" id="clearParkBtn" width="half">Clear Query</button>
         <p><span id="printResults"></span></p>
+        </div>
+      <div class="esri-widget" id="queryAmenityDiv">
+        <h2>Amenity Status</h2>
+        <h3>Select type of amenity...</h3>
+        <select class="esri-widget" id="typeAmenitySelect">
+          <option value="all">Select</option>
+          <option value="bathroom">Bathrooms</option>
+          <option value="building">Buildings</option>
+          <option value="bus">Bus Stops</option>
+          <option value="parking">Parking Lots</option>
+          <option value="poi">Points of Interest</option>
+          <option value="recreation">Recreation Points</option>
+          <option value="table">Tables/shelters</option>
+        </select>
+        <h3>Select status...</h3>
+        <select class="esri-widget" id="expAmenitySelect">
+          <option value="status = 'open' OR status = 'closed'">All</option>
+          <option value="status = 'open'">Open</option>
+          <option value="status = 'closed'">Closed</option>
+        </select>
+        <br />
+        <br />
+        <button class="esri-widget" id="clearAmenityBtn" width="half">Clear Query</button>
+        <p><span id="printResults"></span></p>
+      </div>
       <div id="infoDiv">
         <h1>Information and Usage</h1>
         <p>This application is intended to allow the user to explor parks in Seattle and record wildlife sightings. Please
